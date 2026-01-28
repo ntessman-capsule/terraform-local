@@ -288,7 +288,7 @@ def generate_s3_backend_config() -> str:
     s3_backend_config = {}
     tf_files = parse_tf_files()
     for filename, obj in tf_files.items():
-        if LS_PROVIDERS_FILE == filename:
+        if os.path.basename(filename) == LS_PROVIDERS_FILE:
             continue
         tf_configs = ensure_list(obj.get("terraform", []))
         for tf_config in tf_configs:
@@ -323,7 +323,7 @@ def generate_remote_state_config() -> str:
     tf_files = parse_tf_files()
     result = ""
     for filename, obj in tf_files.items():
-        if LS_PROVIDERS_FILE == filename:
+        if os.path.basename(filename) == LS_PROVIDERS_FILE:
             continue
         data_blocks = ensure_list(obj.get("data", []))
         for data_block in data_blocks:
@@ -608,7 +608,8 @@ def is_override_needed(args) -> bool:
 def parse_tf_files() -> dict:
     """Parse the local *.tf files and return a dict of <filename> -> <resource_dict>"""
     result = {}
-    for _file in glob.glob("*.tf"):
+    folder = get_default_provider_folder_path()
+    for _file in glob.glob(os.path.join(folder, "*.tf")):
         try:
             with open(_file, "r") as fp:
                 result[_file] = hcl2.load(fp)
